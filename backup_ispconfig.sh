@@ -29,7 +29,7 @@ SQLBIN="/usr/bin/mysql"
 
 #DB settings for the mysql-db
 USER="root"								
-PASS=""	
+PASS="#"	
 MYHOST="localhost"
 
 #like /var/backups no slash at the end!
@@ -85,8 +85,9 @@ function exit_bash ()
 	echo "End: $DATE "
 	exit $1
 }
-
-logInfo "Exists backup directory \"$BPATH?\""
+DATEN=`date '+%Y-%m-%d %H:%M:%S'`
+logInfo "Start: $DATEN"
+logInfo "Exists backup directory \"$BPATH\"?"
 if [ ! -d $BPATH ]
 then
     logInfo "no - create it"
