@@ -228,8 +228,8 @@ done
 
 #System backup
 if [ $full_system -eq 1 ];then
-logInfo "System dump /etc/* "
-  tar czf $BPATH/system/$DATUM'_etc.tar.gz' /etc > /dev/null 2>&1
+logInfo "System dump /etc/* /home/* "
+  tar pczf $BPATH/system/$DATUM'_systems.tar.gz' /root /etc /home /var/vmail /var/log /var/www /opt /var/lib /usr/local/ispconfig > /dev/null 2>&1
   if [ $? -eq 0 ]
   then
     logInfo "System dump finished"
