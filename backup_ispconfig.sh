@@ -27,13 +27,18 @@ SQLDUMP="/usr/bin/mysqldump"
 #mysql
 SQLBIN="/usr/bin/mysql"
 
+#options
+roundcube=1
+full_system=1
+
+
 #DB settings for the mysql-db
 USER="root"								
-PASS="#"	
+PASS=""	
 MYHOST="localhost"
 
 #like /var/backups no slash at the end!
-BPATH="/var/backups"
+BPATH="/backups/daten"
 
 #suffix backupfilename
 DATUM=`date +'%Y-%m-%d'`	
@@ -116,9 +121,15 @@ then
 	mkdir $BPATH/webdomains
 fi
 
+if [ ! -d $BPATH/system ] && [ $full_system -eq 1 ]
+then
+	mkdir $BPATH/system
+fi
+
 #clean up
 logInfo "clean the backup directory. Find old files +3 days and delete this"
-find $BPATH -type f -mtime +3 -exec rm {} \;
+find $BPATH -type f -mtime +3
+find $BPATH -type f -mtime +3 -exec rm -rf {} \;
 if [ $? -eq 0 ]
 then
   logInfo "clean finished"
@@ -150,14 +161,16 @@ fi
 
 # Roundcubemail-DB 
 #
-logInfo "DB dump for the roundmail databases"
-DBM="roundcubemail"
-`$SQLDUMP -u$USER -p$PASS -h $MYHOST $DBM | gzip -9 > $BPATH/BASE/$DATUM'_BASE__'$DBM'.sql.gz'`
-if [ $? -eq 0 ]
-then
-  logInfo "DB dump finished"
-else
-  logWarn "cannot dump"
+if [ $roundcube -eq 1 ];then
+  logInfo "DB dump for the roundmail databases"
+  DBM="roundcube"
+  `$SQLDUMP -u$USER -p$PASS -h $MYHOST $DBM | gzip -9 > $BPATH/BASE/$DATUM'_BASE__'$DBM'.sql.gz'`
+  if [ $? -eq 0 ]
+  then
+    logInfo "DB dump finished"
+  else
+    logWarn "cannot dump"
+  fi
 fi
 
 # Client databases 
@@ -185,15 +198,16 @@ logInfo "File dump for all maildomains"
 $SQLBIN -u$USER -p$PASS dbispconfig -e "SELECT domain AS MAILDOMAIN FROM mail_domain order by domain asc;" | grep [a-zA-Z0-9] | grep -v 'MAILDOMAIN' |
 while read MAILDOMAIN
 do
-   tar czf $BPATH/maildomains/$DATUM'_mails__'$MAILDOMAIN'.tar.gz' /var/vmail/$MAILDOMAIN
-   if [ $? -eq 0 ]
-    then
-      logInfo "File dump for $MAILDOMAIN finished"
-    else
-      logWarn "cannot dump for $MAILDOMAIN"
-    fi
+  if [ -d /var/vmail/$MAILDOMAIN ];then
+    tar czf $BPATH/maildomains/$DATUM'_mails__'$MAILDOMAIN'.tar.gz' /var/vmail/$MAILDOMAIN > /dev/null 2>&1
+    if [ $? -eq 0 ]
+      then
+        logInfo "File dump for $MAILDOMAIN finished"
+      else
+        logWarn "cannot dump for $MAILDOMAIN"
+      fi
+  fi
 done
-
 
 # Client websites
 #
@@ -201,14 +215,28 @@ logInfo "File dump for all client websites"
 $SQLBIN -u$USER -p$PASS dbispconfig -e "SELECT domain AS WEBSITE FROM mail_domain order by domain asc;" | grep [a-zA-Z0-9] | grep -v 'WEBSITE' |
 while read WEBSITE
 do
-   tar czf $BPATH/webdomains/$DATUM'_website__'$WEBSITE'.tar.gz' /var/www/$WEBSITE
-    if [ $? -eq 0 ]
-    then
-      logInfo "File dump for $WEBSITE finished"
-    else
-      logWarn "cannot dump for $WEBSITE"
-    fi
+  if [ -d /var/www/$WEBSITE ];then
+      tar czf $BPATH/webdomains/$DATUM'_website__'$WEBSITE'.tar.gz' /var/www/$WEBSITE > /dev/null 2>&1
+      if [ $? -eq 0 ]
+      then
+        logInfo "File dump for $WEBSITE finished"
+      else
+        logWarn "cannot dump for $WEBSITE"
+      fi
+  fi
 done
+
+#System backup
+if [ $full_system -eq 1 ];then
+logInfo "System dump /etc/* "
+  tar czf $BPATH/system/$DATUM'_etc.tar.gz' /etc > /dev/null 2>&1
+  if [ $? -eq 0 ]
+  then
+    logInfo "System dump finished"
+  else
+    logWarn "cannot dump for system files"
+  fi
+fi
 
 
 #Backups put on backup server
