@@ -103,7 +103,7 @@ function exit_bash ()
 	echo "End: $DATE "
 	exit $1
 }
-start_date=`date '+%Y-%m-%d %H:%M:%S'`
+start_date=`date +'%Y-%m-%d %H:%M:%S'`
 logInfo "Start: $start_date"
 logInfo "Exists backup directory \"$BPATH\"?"
 if [ ! -d $BPATH ]
@@ -243,11 +243,11 @@ done
 ## Client websites
 ##
 logInfo "File dump for all client websites"
-$SQLBIN -u$USER -p$PASS dbispconfig -e "SELECT domain AS WEBSITE FROM mail_domain order by domain asc;" | grep [a-zA-Z0-9] | grep -v 'WEBSITE' |
+$SQLBIN -u$USER -p$PASS dbispconfig -e "SELECT domain AS WEBSITE FROM domain order by domain asc;" | grep [a-zA-Z0-9] | grep -v 'WEBSITE' |
 while read WEBSITE
 do
   if [ -d /var/www/$WEBSITE ];then
-      tar czf $BPATH/$DATUM/webdomains/$DATUM'_website__'$WEBSITE'.tar.gz' /var/www/$WEBSITE > /dev/null 2>&1
+      tar chzf $BPATH/$DATUM/webdomains/$DATUM'_website__'$WEBSITE'.tar.gz' /var/www/$WEBSITE > /dev/null 2>&1
       if [ $? -eq 0 ]
       then
         logInfo "File dump for $WEBSITE finished"
@@ -307,7 +307,7 @@ fi
 fi
 
 GROESSE_BACKUP="$(du -sh $BPATH/$DATUM)"
-ENDZEIT=`date '+%Y-%m-%d %H:%M:%S'`
+ENDZEIT=`date +'%Y-%m-%d %H:%M:%S'`
 
 ##
 ## Send a notify via mail
