@@ -99,7 +99,7 @@ function exit_bash ()
 	else
 		logErr "Abbort RC=$1"
 	fi
-	DATE=`date '+%Y-%m-%d %H:%M:%S'`
+	DATE=`date +'%Y-%m-%d %H:%M:%S'`
 	echo "End: $DATE "
 	exit $1
 }
