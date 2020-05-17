@@ -148,8 +148,8 @@ fi
 ## clean up
 ##
 logInfo "clean the backup directory. Find old files +3 days and delete this"
-find $BPATH -type f -mtime +3
-find $BPATH -type f -mtime +3 -exec rm -rf {} \;
+find $BPATH/* -type d -mtime +3
+find $BPATH/* -type d -mtime +3 -exec rm -rf {} \;
 if [ $? -eq 0 ]
 then
   logInfo "clean finished"
