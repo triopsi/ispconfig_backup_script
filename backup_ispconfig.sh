@@ -103,6 +103,24 @@ function exit_bash ()
 	echo "End: $DATE "
 	exit $1
 }
+
+# Function Split Tar
+function splitt_archive ()
+{
+  local tarobj=$1
+  local fielsize=$(stat -c%s "$tarobj")
+  local maxsize=1073741824 # 1G
+  logInfo "Pruefung ob Datei gesplittet werden muss. Grenze liegt bei 1G"
+  if [ $fielsize -gt $maxsize ];then
+    logInfo "Datei muss gesplitet werden"
+    split -b 1G -d $tarobj "$tarobj.part"
+    if [ $? -eq 0 ];then
+      logInfo "Datei wurde erfolgreich gesplitet"
+      rm -rf $tarobj
+    fi
+  fi
+  logInfo "Fertig mit dem Splitten"
+}
 start_date=`date +'%Y-%m-%d %H:%M:%S'`
 logInfo "Start: $start_date"
 logInfo "Exists backup directory \"$BPATH\"?"
@@ -232,6 +250,7 @@ do
     if [ $? -eq 0 ]
       then
         logInfo "File dump for $MAILDOMAIN finished"
+        splitt_archive $BPATH/$DATUM/maildomains/$DATUM'_mails__'$MAILDOMAIN'.tar.gz'
       else
         logWarn "cannot dump for $MAILDOMAIN"
         fail=1
@@ -251,6 +270,7 @@ do
       if [ $? -eq 0 ]
       then
         logInfo "File dump for $WEBSITE finished"
+        splitt_archive $BPATH/$DATUM/webdomains/$DATUM'_website__'$WEBSITE'.tar.gz'
       else
         logWarn "cannot dump for $WEBSITE"
         fail=1
@@ -283,6 +303,7 @@ tar pczf $BPATH/$DATUM/system/$DATUM'_systems.tar.gz' /root /etc /home /var/vmai
 if [ $? -eq 0 ]
   then
     logInfo "System dump finished"
+    splitt_archive $BPATH/$DATUM/system/$DATUM'_systems.tar.gz'
   else
     logInfo "System dump with warn logs finished"
   fi
